@@ -32,8 +32,8 @@ export default function Layout({ children }: { children: React.ReactNode }) {
             const isActive = location === item.href;
             return (
               <Link key={item.href} href={item.href}>
-                <a className={cn(
-                  "flex flex-col items-center justify-center w-16 h-full transition-all duration-300",
+                <div className={cn(
+                  "flex flex-col items-center justify-center w-16 h-full transition-all duration-300 cursor-pointer",
                   isActive ? "text-[#C7826B] -translate-y-1" : "text-[#8FA89B] hover:text-[#2C3E50]"
                 )}>
                   <item.icon 
@@ -45,19 +45,19 @@ export default function Layout({ children }: { children: React.ReactNode }) {
                   {isActive && (
                     <span className="absolute bottom-1 w-1 h-1 rounded-full bg-[#C7826B]" />
                   )}
-                </a>
+                </div>
               </Link>
             );
           })}
           
           {/* Treasurer Link (Hidden/Subtle) */}
           <Link href="/treasurer">
-            <a className={cn(
-              "flex flex-col items-center justify-center w-16 h-full transition-all duration-300",
+            <div className={cn(
+              "flex flex-col items-center justify-center w-16 h-full transition-all duration-300 cursor-pointer",
               location === '/treasurer' ? "text-[#C7826B]" : "text-[#8FA89B]/50"
             )}>
               <Lock size={16} strokeWidth={1.5} />
-            </a>
+            </div>
           </Link>
         </div>
       </nav>
