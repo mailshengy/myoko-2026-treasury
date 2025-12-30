@@ -86,9 +86,16 @@ export default function Expenses() {
                 </div>
                 <div>
                   <p className="font-medium text-[#2C3E50]">{expense.description}</p>
-                  <p className="text-xs text-[#2C3E50]/50 mt-0.5">
-                    Paid by <span className="font-semibold text-[#2C3E50]/70">{expense.paidBy}</span>
-                  </p>
+                  <div className="flex items-center gap-2 mt-1">
+                    {expense.category && (
+                      <span className="text-[10px] px-2 py-0.5 bg-[#8FA89B]/10 text-[#8FA89B] rounded-full font-medium">
+                        {expense.category}
+                      </span>
+                    )}
+                    <p className="text-xs text-[#2C3E50]/50">
+                      Paid by <span className="font-semibold text-[#2C3E50]/70">{expense.paidBy}</span>
+                    </p>
+                  </div>
                 </div>
               </div>
               <div className="text-right">

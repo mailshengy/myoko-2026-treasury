@@ -18,6 +18,8 @@ export default function Treasurer() {
   const [currency, setCurrency] = useState<'JPY' | 'SGD'>('JPY');
   const [paidBy, setPaidBy] = useState('');
   const [date, setDate] = useState(new Date().toISOString().split('T')[0]);
+  const [category, setCategory] = useState('Food');
+  const [notes, setNotes] = useState('');
 
   useEffect(() => {
     // Check if already authenticated in session
@@ -67,7 +69,9 @@ export default function Treasurer() {
         amount: Number(amount),
         currency,
         paidBy,
-        splitMethod: 'Equal'
+        splitMethod: 'Equal',
+        category,
+        notes
       }, passcode);
 
       if (success) {
@@ -75,6 +79,7 @@ export default function Treasurer() {
         // Reset form
         setDescription('');
         setAmount('');
+        setNotes('');
         // Keep payer and currency as they might be repetitive
         loadData(); // Refresh data
       } else {
@@ -222,6 +227,28 @@ export default function Treasurer() {
             </div>
           </div>
 
+          {/* Category */}
+          <div>
+            <label className="block text-xs font-bold uppercase text-[#2C3E50]/40 mb-2 ml-1">Category</label>
+            <div className="grid grid-cols-2 gap-2">
+              {['Food', 'Transport', 'Accommodation', 'Activities'].map((cat) => (
+                <button
+                  key={cat}
+                  type="button"
+                  onClick={() => setCategory(cat)}
+                  className={cn(
+                    "py-2 px-3 rounded-lg text-sm font-medium transition-all border text-center",
+                    category === cat
+                      ? "bg-[#2C3E50] text-white border-[#2C3E50]"
+                      : "bg-white text-[#2C3E50] border-[#2C3E50]/10 hover:border-[#2C3E50]/30"
+                  )}
+                >
+                  {cat}
+                </button>
+              ))}
+            </div>
+          </div>
+
           {/* Date */}
           <div>
             <label className="block text-xs font-bold uppercase text-[#2C3E50]/40 mb-2 ml-1">Date</label>
@@ -231,6 +258,17 @@ export default function Treasurer() {
               onChange={(e) => setDate(e.target.value)}
               className="w-full px-4 py-3 rounded-xl bg-white border border-[#2C3E50]/10 focus:border-[#8FA89B] outline-none transition-all"
               required
+            />
+          </div>
+
+          {/* Notes */}
+          <div>
+            <label className="block text-xs font-bold uppercase text-[#2C3E50]/40 mb-2 ml-1">Notes (Optional)</label>
+            <textarea
+              value={notes}
+              onChange={(e) => setNotes(e.target.value)}
+              placeholder="e.g. Shared with 3 people only"
+              className="w-full px-4 py-3 rounded-xl bg-white border border-[#2C3E50]/10 focus:border-[#8FA89B] outline-none transition-all resize-none h-20"
             />
           </div>
 

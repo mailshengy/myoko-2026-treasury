@@ -1,8 +1,9 @@
 import { useEffect, useState } from 'react';
+import { Link } from 'wouter';
 import Layout from '@/components/Layout';
 import { fetchData, AppData } from '@/lib/api';
 import { calculateBalances, calculateSettlements } from '@/lib/settlement';
-import { Loader2, ArrowRight, CheckCircle2 } from 'lucide-react';
+import { Loader2, ArrowRight, CheckCircle2, ChevronRight } from 'lucide-react';
 
 export default function Settlement() {
   const [data, setData] = useState<AppData | null>(null);
@@ -85,10 +86,19 @@ export default function Settlement() {
           </div>
         )}
 
-        <div className="mt-8 p-4 bg-[#F5F5F0] rounded-xl border border-[#2C3E50]/5 text-center">
-          <p className="text-xs text-[#2C3E50]/50 leading-relaxed">
-            Calculated using a debt simplification algorithm to minimize the total number of transactions required.
-          </p>
+        <div className="mt-8 space-y-4">
+          <div className="p-4 bg-[#F5F5F0] rounded-xl border border-[#2C3E50]/5 text-center">
+            <p className="text-xs text-[#2C3E50]/50 leading-relaxed">
+              Calculated using a debt simplification algorithm to minimize the total number of transactions required.
+            </p>
+          </div>
+          
+          <Link href="/settlement-details">
+            <div className="block w-full p-4 bg-white rounded-xl border border-[#8FA89B]/30 hover:bg-[#F5F5F0] transition-colors flex items-center justify-between group cursor-pointer">
+              <span className="text-sm font-medium text-[#2C3E50]">View Detailed Breakdown</span>
+              <ChevronRight size={20} className="text-[#8FA89B] group-hover:translate-x-1 transition-transform" />
+            </div>
+          </Link>
         </div>
       </div>
     </Layout>

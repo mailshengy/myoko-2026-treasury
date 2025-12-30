@@ -8,6 +8,7 @@ import Home from "./pages/Home";
 import Participants from "./pages/Participants";
 import Expenses from "./pages/Expenses";
 import Settlement from "./pages/Settlement";
+import SettlementDetails from "./pages/SettlementDetails";
 import Treasurer from "./pages/Treasurer";
 
 function Router() {
@@ -17,6 +18,7 @@ function Router() {
       <Route path="/participants" component={Participants} />
       <Route path="/expenses" component={Expenses} />
       <Route path="/settlement" component={Settlement} />
+      <Route path="/settlement-details" component={SettlementDetails} />
       <Route path="/treasurer" component={Treasurer} />
       <Route component={NotFound} />
     </Switch>

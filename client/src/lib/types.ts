@@ -20,6 +20,8 @@ export interface Expense {
   currency: 'SGD' | 'JPY';
   paidBy: string;
   splitMethod: 'Equal' | string; // Could be "Equal" or specific names
+  category?: string; // e.g., 'Food', 'Transport', 'Accommodation', 'Activities'
+  notes?: string; // Additional details
 }
 
 export interface Balance {
