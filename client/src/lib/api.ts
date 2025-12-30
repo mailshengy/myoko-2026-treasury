@@ -81,13 +81,8 @@ export async function addExpense(expense: Omit<Expense, 'id'>, passcode: string)
     return true;
   }
 
-  // Simple passcode check (client-side for now, but should be server-side ideally)
-  // In a real app, we'd send this to the server
-  const correctPasscode = import.meta.env.VITE_TREASURER_PASSCODE;
-  if (passcode !== correctPasscode) {
-    throw new Error('Invalid passcode');
-  }
-
+  // Passcode is already verified during login (session storage check above)
+  // No need to verify again here
   try {
     const response = await fetch(API_URL, {
       method: 'POST',
@@ -132,15 +127,22 @@ function normalizeParticipants(raw: any[]): Participant[] {
 }
 
 function normalizeExpenses(raw: any[]): Expense[] {
-  return raw.map((e, index) => ({
-    id: `exp-${index}`, // Generate a temporary ID
-    date: e.Date || e.date,
-    description: e.Description || e.description,
-    amount: Number(e.Amount || e.amount),
-    currency: (e.Currency || e.currency) as 'SGD' | 'JPY',
-    paidBy: e['Paid By'] || e['paid by'],
-    splitMethod: e['Split Method'] || e['split method'] || 'Equal'
-  }));
+  return raw.map((e, index) => {
+    const splitWithStr = e.Split_With || e['Split_With'] || '';
+    const splitWith = splitWithStr ? splitWithStr.split(',').map((s: string) => s.trim()) : undefined;
+    return {
+      id: `exp-${index}`,
+      date: e.Date || e.date,
+      description: e.Description || e.description,
+      amount: Number(e.Amount || e.amount),
+      currency: (e.Currency || e.currency) as 'SGD' | 'JPY',
+      paidBy: e.Paid_By || e['Paid_By'] || e['Paid By'] || e['paid by'] || e.paidBy,
+      splitMethod: e.Split_Method || e['Split_Method'] || e['Split Method'] || 'Equal',
+      splitWith: splitWith,
+      category: e.Category || e.category,
+      notes: e.Notes || e.notes
+    };
+  });
 }
 
 // --- MOCK DATA ---
