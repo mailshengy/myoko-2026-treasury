@@ -19,9 +19,20 @@ export interface Expense {
   amount: number;
   currency: 'SGD' | 'JPY';
   paidBy: string;
-  splitMethod: 'Equal' | string; // Could be "Equal" or specific names
+  splitMethod: 'Equal' | 'Custom'; // 'Equal' = all participants, 'Custom' = specific people
+  splitWith?: string[]; // For custom splits: array of participant names who share this expense
   category?: string; // e.g., 'Food', 'Transport', 'Accommodation', 'Activities'
   notes?: string; // Additional details
+}
+
+export interface Payment {
+  id: string;
+  date: string;
+  from: string; // Who paid
+  to: string; // Who received
+  amount: number;
+  currency: 'SGD' | 'JPY';
+  notes?: string;
 }
 
 export interface Balance {
@@ -36,4 +47,12 @@ export interface Settlement {
   from: string;
   to: string;
   amountSgd: number;
+}
+
+export interface AppData {
+  settings: Settings;
+  participants: Participant[];
+  expenses: Expense[];
+  payments: Payment[];
+  lastUpdated: string;
 }

@@ -9,6 +9,8 @@ import Participants from "./pages/Participants";
 import Expenses from "./pages/Expenses";
 import Settlement from "./pages/Settlement";
 import SettlementDetails from "./pages/SettlementDetails";
+import Payments from "./pages/Payments";
+import TripSummary from "./pages/TripSummary";
 import Treasurer from "./pages/Treasurer";
 
 function Router() {
@@ -19,6 +21,8 @@ function Router() {
       <Route path="/expenses" component={Expenses} />
       <Route path="/settlement" component={Settlement} />
       <Route path="/settlement-details" component={SettlementDetails} />
+      <Route path="/payments" component={Payments} />
+      <Route path="/trip-summary" component={TripSummary} />
       <Route path="/treasurer" component={Treasurer} />
       <Route component={NotFound} />
     </Switch>

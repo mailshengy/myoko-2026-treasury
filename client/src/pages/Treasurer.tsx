@@ -1,7 +1,7 @@
-import { useState, useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import Layout from '@/components/Layout';
 import { fetchData, addExpense, AppData } from '@/lib/api';
-import { Loader2, Lock, Plus, Check } from 'lucide-react';
+import { Loader2, Lock, Plus, Check, X } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { toast } from 'sonner';
 
@@ -20,6 +20,8 @@ export default function Treasurer() {
   const [date, setDate] = useState(new Date().toISOString().split('T')[0]);
   const [category, setCategory] = useState('Food');
   const [notes, setNotes] = useState('');
+  const [splitMethod, setSplitMethod] = useState<'Equal' | 'Custom'>('Equal');
+  const [splitWith, setSplitWith] = useState<string[]>([]);
 
   useEffect(() => {
     // Check if already authenticated in session
@@ -40,15 +42,12 @@ export default function Treasurer() {
 
   const handleLogin = (e: React.FormEvent) => {
     e.preventDefault();
-    // In a real app, verify with server. Here we check env var or simple string
-    // For demo purposes, let's accept '2026' or the env var
     const correct = import.meta.env.VITE_TREASURER_PASSCODE || '2026';
     
     if (passcode === correct) {
       setIsAuthenticated(true);
       sessionStorage.setItem('treasurer_auth', 'true');
       loadData();
-      toast.success('Welcome, Treasurer');
     } else {
       toast.error('Incorrect passcode');
     }
@@ -61,6 +60,11 @@ export default function Treasurer() {
       return;
     }
 
+    if (splitMethod === 'Custom' && splitWith.length === 0) {
+      toast.error('Please select at least one person for custom split');
+      return;
+    }
+
     setSubmitting(true);
     try {
       const success = await addExpense({
@@ -69,7 +73,8 @@ export default function Treasurer() {
         amount: Number(amount),
         currency,
         paidBy,
-        splitMethod: 'Equal',
+        splitMethod,
+        splitWith: splitMethod === 'Custom' ? splitWith : undefined,
         category,
         notes
       }, passcode);
@@ -80,8 +85,9 @@ export default function Treasurer() {
         setDescription('');
         setAmount('');
         setNotes('');
-        // Keep payer and currency as they might be repetitive
-        loadData(); // Refresh data
+        setSplitMethod('Equal');
+        setSplitWith([]);
+        loadData();
       } else {
         toast.error('Failed to add expense');
       }
@@ -96,13 +102,13 @@ export default function Treasurer() {
   if (!isAuthenticated) {
     return (
       <Layout>
-        <div className="flex flex-col items-center justify-center min-h-[60vh] px-6">
-          <div className="w-16 h-16 bg-[#2C3E50] rounded-2xl flex items-center justify-center text-white mb-6 shadow-lg shadow-[#2C3E50]/20">
-            <Lock size={32} strokeWidth={1.5} />
+        <div className="pt-12 px-6 pb-8 min-h-screen flex flex-col items-center justify-center">
+          <div className="w-16 h-16 bg-[#2C3E50]/10 rounded-full flex items-center justify-center text-[#2C3E50] mb-6">
+            <Lock size={32} />
           </div>
-          <h1 className="font-serif text-2xl text-[#2C3E50] mb-2">Treasurer Access</h1>
-          <p className="text-[#2C3E50]/60 text-sm mb-8 text-center">
-            Enter the group passcode to add expenses.
+          <h1 className="font-serif text-2xl text-[#2C3E50] mb-2 text-center">Treasurer Mode</h1>
+          <p className="text-[#2C3E50]/60 text-sm text-center mb-8 max-w-xs">
+            Enter the passcode to access expense management
           </p>
 
           <form onSubmit={handleLogin} className="w-full max-w-xs space-y-4">
@@ -110,13 +116,13 @@ export default function Treasurer() {
               type="password"
               value={passcode}
               onChange={(e) => setPasscode(e.target.value)}
-              placeholder="Passcode"
-              className="w-full px-4 py-3 rounded-xl bg-white border border-[#2C3E50]/10 focus:border-[#2C3E50] focus:ring-0 outline-none text-center text-lg tracking-widest transition-all"
+              placeholder="Enter passcode"
+              className="w-full px-4 py-3 rounded-xl bg-white border border-[#2C3E50]/10 focus:border-[#8FA89B] outline-none transition-all text-center text-lg tracking-widest"
               autoFocus
             />
             <button
               type="submit"
-              className="w-full py-3 bg-[#2C3E50] text-white rounded-xl font-medium hover:bg-[#2C3E50]/90 transition-colors shadow-lg shadow-[#2C3E50]/20"
+              className="w-full py-3 bg-[#2C3E50] text-white rounded-xl font-medium shadow-lg shadow-[#2C3E50]/20 hover:bg-[#2C3E50]/90 transition-all active:scale-[0.98]"
             >
               Unlock
             </button>
@@ -226,6 +232,78 @@ export default function Treasurer() {
               ))}
             </div>
           </div>
+
+          {/* Split Method */}
+          <div>
+            <label className="block text-xs font-bold uppercase text-[#2C3E50]/40 mb-2 ml-1">Split Method</label>
+            <div className="grid grid-cols-2 gap-2">
+              <button
+                type="button"
+                onClick={() => {
+                  setSplitMethod('Equal');
+                  setSplitWith([]);
+                }}
+                className={cn(
+                  "py-3 px-4 rounded-xl text-sm font-medium transition-all border",
+                  splitMethod === 'Equal'
+                    ? "bg-[#2C3E50] text-white border-[#2C3E50]"
+                    : "bg-white text-[#2C3E50] border-[#2C3E50]/10 hover:border-[#2C3E50]/30"
+                )}
+              >
+                Equal Split
+              </button>
+              <button
+                type="button"
+                onClick={() => setSplitMethod('Custom')}
+                className={cn(
+                  "py-3 px-4 rounded-xl text-sm font-medium transition-all border",
+                  splitMethod === 'Custom'
+                    ? "bg-[#2C3E50] text-white border-[#2C3E50]"
+                    : "bg-white text-[#2C3E50] border-[#2C3E50]/10 hover:border-[#2C3E50]/30"
+                )}
+              >
+                Custom Split
+              </button>
+            </div>
+          </div>
+
+          {/* Custom Split Selection */}
+          {splitMethod === 'Custom' && (
+            <div>
+              <label className="block text-xs font-bold uppercase text-[#2C3E50]/40 mb-2 ml-1">
+                Who shares this expense?
+              </label>
+              <div className="grid grid-cols-2 gap-2">
+                {uniquePayers.map((person) => (
+                  <button
+                    key={person}
+                    type="button"
+                    onClick={() => {
+                      if (splitWith.includes(person)) {
+                        setSplitWith(splitWith.filter(p => p !== person));
+                      } else {
+                        setSplitWith([...splitWith, person]);
+                      }
+                    }}
+                    className={cn(
+                      "py-2 px-3 rounded-lg text-sm font-medium transition-all border flex items-center justify-between",
+                      splitWith.includes(person)
+                        ? "bg-[#8FA89B] text-white border-[#8FA89B]"
+                        : "bg-white text-[#2C3E50] border-[#2C3E50]/10 hover:border-[#2C3E50]/30"
+                    )}
+                  >
+                    {person}
+                    {splitWith.includes(person) && <Check size={14} />}
+                  </button>
+                ))}
+              </div>
+              {splitWith.length > 0 && (
+                <p className="text-xs text-[#8FA89B] mt-2 ml-1">
+                  {splitWith.length} person{splitWith.length !== 1 ? 's' : ''} selected
+                </p>
+              )}
+            </div>
+          )}
 
           {/* Category */}
           <div>

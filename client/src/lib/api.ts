@@ -1,4 +1,4 @@
-import { Expense, Participant, Settings } from './types';
+import { Settings, Participant, Expense, Payment } from './types';
 
 // This URL will be provided by the user after they deploy the Google Apps Script
 // For development, we can use a mock or a placeholder
@@ -8,6 +8,7 @@ export interface AppData {
   settings: Settings;
   participants: Participant[];
   expenses: Expense[];
+  payments?: Payment[];
   lastUpdated: string;
 }
 

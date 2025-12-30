@@ -5,8 +5,8 @@ import { Balance, Expense, Participant, Settlement, Settings } from './types';
  * 
  * Logic:
  * 1. Convert all expenses to SGD using the FX rate.
- * 2. Calculate total group spending.
- * 3. Determine each person's fair share (Total / N).
+ * 2. For each expense, determine who shares it (all participants for Equal, specific people for Custom).
+ * 3. Calculate each person's fair share based on their participation.
  * 4. Calculate Net Balance = (Initial Funding + Expenses Paid converted to SGD) - Fair Share.
  */
 export function calculateBalances(
@@ -34,14 +34,14 @@ export function calculateBalances(
     }
   });
 
-  // 2. Calculate total pool in SGD
-  // Total Pool = Sum of all initial funding + Sum of all expenses paid out of pocket (converted)
-  // Wait, the logic is simpler:
-  // Net Balance = (What I put in) - (What I consumed)
-  // What I put in = Initial Funding + Out of pocket expenses
-  // What I consumed = Total Group Spend / N (assuming equal split)
-
+  // 2. Calculate total pool in SGD and each person's fair share
   let totalGroupSpendSgd = 0;
+  const personShareMap: { [name: string]: number } = {};
+
+  // Initialize share map
+  participants.forEach(p => {
+    personShareMap[p.name] = 0;
+  });
 
   expenses.forEach(expense => {
     let amountSgd = expense.amount;
@@ -49,9 +49,24 @@ export function calculateBalances(
       amountSgd = expense.amount / settings.fxRate;
     }
     totalGroupSpendSgd += amountSgd;
-  });
 
-  const sharePerPerson = totalGroupSpendSgd / participants.length;
+    // Determine who shares this expense
+    let shareParticipants: string[] = [];
+    
+    if (expense.splitMethod === 'Equal') {
+      // Everyone shares equally
+      shareParticipants = participants.map(p => p.name);
+    } else if (expense.splitMethod === 'Custom' && expense.splitWith) {
+      // Only specific people share
+      shareParticipants = expense.splitWith;
+    }
+
+    // Divide expense among those who share it
+    const sharePerPerson = amountSgd / shareParticipants.length;
+    shareParticipants.forEach(person => {
+      personShareMap[person] += sharePerPerson;
+    });
+  });
 
   // 3. Calculate final balances
   balances.forEach(b => {
@@ -61,8 +76,8 @@ export function calculateBalances(
     // Total Contribution = Initial Funding + Out of Pocket Expenses
     const totalContribution = b.paidSgd + outOfPocketSgd;
     
-    b.shareSgd = sharePerPerson;
-    b.netBalanceSgd = totalContribution - sharePerPerson;
+    b.shareSgd = personShareMap[b.name];
+    b.netBalanceSgd = totalContribution - personShareMap[b.name];
   });
 
   return balances;
