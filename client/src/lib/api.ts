@@ -128,8 +128,18 @@ function normalizeParticipants(raw: any[]): Participant[] {
 
 function normalizeExpenses(raw: any[]): Expense[] {
   return raw.map((e, index) => {
-    const splitWithStr = e.Split_With || e['Split_With'] || '';
-    const splitWith = splitWithStr ? splitWithStr.split(',').map((s: string) => s.trim()) : undefined;
+    let splitWith: string[] | undefined = undefined;
+    const splitWithRaw = e.Split_With || e['Split_With'];
+    
+    if (splitWithRaw) {
+      if (typeof splitWithRaw === 'string' && splitWithRaw.length > 0) {
+        const parts = splitWithRaw.split(',').map((s: string) => s.trim()).filter((s: string) => s.length > 0);
+        splitWith = parts.length > 0 ? parts : undefined;
+      } else if (Array.isArray(splitWithRaw) && splitWithRaw.length > 0) {
+        const parts = splitWithRaw.map((s: any) => String(s).trim()).filter((s: string) => s.length > 0);
+        splitWith = parts.length > 0 ? parts : undefined;
+      }
+    }
     return {
       id: `exp-${index}`,
       date: e.Date || e.date,
