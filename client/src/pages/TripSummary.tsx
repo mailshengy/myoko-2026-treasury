@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import Layout from '@/components/Layout';
 import { fetchData, AppData } from '@/lib/api';
 import { calculateBalances, calculateSettlements } from '@/lib/settlement';
+import type { Expense, Participant } from '@/lib/types';
 import { printTripSummary, downloadTripSummary, generateTripSummary } from '@/lib/pdfExport';
 import { Loader2, FileText, Printer, Download, Eye } from 'lucide-react';
 import { toast } from 'sonner';
@@ -53,12 +54,12 @@ export default function TripSummary() {
     day: 'numeric' 
   });
 
-  const totalExpensesSgd = data.expenses.reduce((sum, e) => {
+  const totalExpensesSgd = data.expenses.reduce((sum: number, e: Expense) => {
     const amountSgd = e.currency === 'SGD' ? e.amount : e.amount / data.settings.fxRate;
     return sum + amountSgd;
   }, 0);
 
-  const totalCollected = data.participants.reduce((sum, p) => sum + p.amountPaidSgd, 0);
+  const totalCollected = data.participants.reduce((sum: number, p: Participant) => sum + p.amountPaidSgd, 0);
 
   return (
     <Layout>

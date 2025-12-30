@@ -120,7 +120,7 @@ function normalizeSettings(raw: any): Settings {
 function normalizeParticipants(raw: any[]): Participant[] {
   return raw.map(p => ({
     name: p.Name || p.name,
-    amountPaidSgd: Number(p['Amount Paid (SGD)'] || p['amount paid (sgd)'] || 0),
+    amountPaidSgd: Number(p.Amount_Paid_SGD || p['Amount_Paid_SGD'] || p['Amount Paid (SGD)'] || p['amount paid (sgd)'] || 0),
     status: p.Status || p.status || 'Pending',
     email: p.Email || p.email || ''
   }));
