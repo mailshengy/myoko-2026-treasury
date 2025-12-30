@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import Layout from '@/components/Layout';
-import { fetchData, addExpense, AppData } from '@/lib/api';
+import { fetchData, addExpense, addPayment, AppData } from '@/lib/api';
 import { Loader2, Lock, Plus, Check, X } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { toast } from 'sonner';
@@ -22,6 +22,16 @@ export default function Treasurer() {
   const [notes, setNotes] = useState('');
   const [splitMethod, setSplitMethod] = useState<'Equal' | 'Custom'>('Equal');
   const [splitWith, setSplitWith] = useState<string[]>([]);
+
+  // Payment Form State
+  const [showPaymentForm, setShowPaymentForm] = useState(false);
+  const [paymentFrom, setPaymentFrom] = useState('');
+  const [paymentTo, setPaymentTo] = useState('');
+  const [paymentAmount, setPaymentAmount] = useState('');
+  const [paymentCurrency, setPaymentCurrency] = useState<'JPY' | 'SGD'>('SGD');
+  const [paymentDate, setPaymentDate] = useState(new Date().toISOString().split('T')[0]);
+  const [paymentNotes, setPaymentNotes] = useState('');
+  const [paymentSubmitting, setPaymentSubmitting] = useState(false);
 
   useEffect(() => {
     // Check if already authenticated in session
@@ -96,6 +106,43 @@ export default function Treasurer() {
       toast.error('An error occurred');
     } finally {
       setSubmitting(false);
+    }
+  };
+
+  const handlePaymentSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!paymentFrom || !paymentTo || !paymentAmount) {
+      toast.error('Please fill in all payment fields');
+      return;
+    }
+
+    setPaymentSubmitting(true);
+    try {
+      const success = await addPayment({
+        date: paymentDate,
+        from: paymentFrom,
+        to: paymentTo,
+        amount: Number(paymentAmount),
+        currency: paymentCurrency,
+        notes: paymentNotes
+      }, passcode);
+
+      if (success) {
+        toast.success('Payment recorded successfully');
+        setPaymentFrom('');
+        setPaymentTo('');
+        setPaymentAmount('');
+        setPaymentNotes('');
+        setShowPaymentForm(false);
+        loadData();
+      } else {
+        toast.error('Failed to record payment');
+      }
+    } catch (error) {
+      console.error(error);
+      toast.error('An error occurred');
+    } finally {
+      setPaymentSubmitting(false);
     }
   };
 
@@ -366,6 +413,29 @@ export default function Treasurer() {
             )}
           </button>
         </form>
+
+        {/* Payment Recording Section */}
+        <div className="mt-12 pt-8 border-t border-[#2C3E50]/10">
+          <button
+            onClick={() => setShowPaymentForm(!showPaymentForm)}
+            className="text-[#C7826B] font-medium text-sm uppercase tracking-wider hover:text-[#C7826B]/80 transition-all flex items-center gap-2"
+          >
+            <Plus size={16} />
+            Record Payment
+          </button>
+
+          {showPaymentForm && (
+            <form onSubmit={handlePaymentSubmit} className="mt-6 space-y-4 bg-[#F5F5F0] p-6 rounded-2xl">
+              <h3 className="font-serif text-lg text-[#2C3E50] mb-4">Record a Payment</h3>
+              <div><label className="block text-xs font-bold uppercase text-[#2C3E50]/40 mb-2 ml-1">From</label><select value={paymentFrom} onChange={(e) => setPaymentFrom(e.target.value)} className="w-full px-4 py-3 rounded-xl bg-white border border-[#2C3E50]/10 outline-none" required><option value="">Select</option>{data.participants.map(p => (<option key={p.name} value={p.name}>{p.name}</option>))}</select></div>
+              <div><label className="block text-xs font-bold uppercase text-[#2C3E50]/40 mb-2 ml-1">To</label><select value={paymentTo} onChange={(e) => setPaymentTo(e.target.value)} className="w-full px-4 py-3 rounded-xl bg-white border border-[#2C3E50]/10 outline-none" required><option value="">Select</option>{data.participants.map(p => (<option key={p.name} value={p.name}>{p.name}</option>))}</select></div>
+              <div className="bg-white p-2 rounded-2xl border border-[#2C3E50]/10 flex"><input type="number" value={paymentAmount} onChange={(e) => setPaymentAmount(e.target.value)} placeholder="0" className="flex-1 px-4 text-2xl font-mono bg-transparent outline-none" required /><div className="flex bg-[#F5F5F0] rounded-xl p-1"><button type="button" onClick={() => setPaymentCurrency('JPY')} className={cn("px-3 py-2 rounded-lg text-xs font-bold", paymentCurrency === 'JPY' ? "bg-white" : "text-[#2C3E50]/40")}>JPY</button><button type="button" onClick={() => setPaymentCurrency('SGD')} className={cn("px-3 py-2 rounded-lg text-xs font-bold", paymentCurrency === 'SGD' ? "bg-white" : "text-[#2C3E50]/40")}>SGD</button></div></div>
+              <div><label className="block text-xs font-bold uppercase text-[#2C3E50]/40 mb-2 ml-1">Date</label><input type="date" value={paymentDate} onChange={(e) => setPaymentDate(e.target.value)} className="w-full px-4 py-3 rounded-xl bg-white border border-[#2C3E50]/10 outline-none" required /></div>
+              <div><label className="block text-xs font-bold uppercase text-[#2C3E50]/40 mb-2 ml-1">Notes</label><input type="text" value={paymentNotes} onChange={(e) => setPaymentNotes(e.target.value)} placeholder="e.g. Settlement" className="w-full px-4 py-3 rounded-xl bg-white border border-[#2C3E50]/10 outline-none" /></div>
+              <div className="flex gap-2 pt-2"><button type="submit" disabled={paymentSubmitting} className="flex-1 py-3 bg-[#8FA89B] text-white rounded-xl font-medium hover:bg-[#8FA89B]/90 transition-all disabled:opacity-70">{paymentSubmitting ? <Loader2 className="animate-spin" size={18} /> : "Record"}</button><button type="button" onClick={() => setShowPaymentForm(false)} className="px-4 py-3 bg-white text-[#2C3E50] rounded-xl border border-[#2C3E50]/10">Cancel</button></div>
+            </form>
+          )}
+        </div>
       </div>
     </Layout>
   );

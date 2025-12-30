@@ -106,6 +106,34 @@ export async function addExpense(expense: Omit<Expense, 'id'>, passcode: string)
   }
 }
 
+export async function addPayment(payment: Omit<Payment, 'id'>, passcode: string): Promise<boolean> {
+  if (!API_URL) {
+    console.warn('No API URL, simulating add payment');
+    return true;
+  }
+
+  try {
+    const response = await fetch(API_URL, {
+      method: 'POST',
+      body: JSON.stringify({
+        ...payment,
+        action: 'addPayment'
+      })
+    });
+    
+    const result = await response.json();
+    
+    if (result.success) {
+      localStorage.removeItem(CACHE_KEY);
+      return true;
+    }
+    return false;
+  } catch (error) {
+    console.error('Add payment error:', error);
+    return false;
+  }
+}
+
 // --- NORMALIZATION HELPERS ---
 
 function normalizeSettings(raw: any): Settings {
